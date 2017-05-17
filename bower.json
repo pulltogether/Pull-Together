@@ -1,0 +1,25 @@
+{
+  "name": "pulltogether",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "output"
+  ],
+  "dependencies": {
+    "purescript-prelude": "^3.0.0",
+    "purescript-console": "^3.0.0",
+    "purescript-halogen": "^2.0.1"
+  },
+  "devDependencies": {
+    "purescript-psci-support": "^3.0.0",
+    "purescript-node-child-process": "^4.0.0",
+    "purescript-chalky": "^2.0.0",
+    "purescript-platform": "^3.0.0",
+    "purescript-node-fs-aff": "^4.0.0",
+    "purescript-node-path": "^2.0.0",
+    "purescript-node-process": "^4.0.0",
+    "purescript-strongcheck": "^3.1.0",
+    "purescript-webdriver": "^4.0.0"
+  }
+}

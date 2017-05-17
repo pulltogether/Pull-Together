@@ -1,0 +1,106 @@
+Scenario: Start a pull together and invite people
+When I access pull together for the first time
+And provide a name for the group to pull together
+And provide a password for me
+Then I should be prompted to invite people
+When I invite someone
+Then I should be presented with an invitation url
+When I invite another person
+Then I should be presented with another invitation url
+When I continue
+Then I should be signed in
+And I should be presented with a message that no notes have been written yet
+And I should be presented with an empty pidgeonhole
+
+Scenario: Sign in
+Given someone has started a pull together
+When I sign in to pull together
+Then I should be presented with an option to post a note
+And I should be presented with an option to invite people
+And I should be presented with an option to change my password
+And I should be presented with an option to sign out
+
+Scenario: Leave an note
+Given someone has started a pull together
+And some people have left some notes
+When I sign into pull together
+And I access the option to post a note
+And I provide a warning
+And I provide another warning
+And I write a note
+And I post the note
+Then I should be prompted to confim that I want to post the note
+When I confirm
+Then I should be presented with the list of notes with my note first
+And my note should be obscured by its warnings
+And I should have the option to reply to my own note
+And I should have the option to add a warning to my own note
+When I accept the warnings for my note
+Then I should be presented with my note
+And I should have the option to reply to my own note
+And I should have the option to add a warning to my own note
+And I should be able to obscure my note behind its warnings
+
+Scenario: Leave an note without warnings
+Given someone has started a pull together
+And some people have left some notes
+When I sign into pull together
+And I access the option to post a note
+And I write a note
+And I post the note
+And I should be prompted to confirm that I want to post the note without warnings
+When I confirm
+Then I should be presented with the list of notes with my note first
+And I should have the option to reply to my own note
+And I should have the option to add a warning to my own note
+
+Scenario: Invite people to pull together
+When I sign in to pull together
+And invite someone
+Then I should be presented with an invitation url
+When she accesses this invitation url
+And provides a password
+Then she should be signed in
+
+Scenario: Check notes
+Given someone has started a pull together
+And some people have left some notes
+When I sign into pull together
+Then I should be presented with the list of notes in the order they were left
+
+Scenario: Add warnings to a note
+Given someone has started a pull together
+And someone has left a note without any warnings
+When I sign into pull together
+When I add warnings to a note
+Then that note should be obscured behind its warnings
+
+Scenario: Reply to a note
+Given someone has started a pull together
+And someone has left a note
+When I sign into pull together
+And I access the option to reply to a note
+And I write a reply
+And I provide a warning for the reply
+And I provide another warning for the reply
+And I send the reply
+Then I should be prompted to confirm that I want to send the reply
+When I confirm
+And the author of the note signs in
+Then the author of the note should see that her pidgeonhole is not empty
+When the author of the note accesses her pidgeonhole
+Then the author should be presented with the reply obscured by its warnings
+When the author accepts the reply's warnings
+Then the author should be presented with the reply
+And the author should be able to add warnings to the reply
+And the author should be able to obscure the reply behind its warnings
+When the author replies to my message
+And I sign in
+Then I should see that my pidgeonhole is not empty
+When I access my pidgeonhole
+Then I should be presented with the reply obscured by its warnings
+When I accept the reply's warnings
+Then I should be presented with the reply
+And I should be able to add warnings to the reply
+And I should be able to obscure the reply behind its warnings
+And I should have the option to reply to the reply
