@@ -12,19 +12,19 @@ import Test.Feature.Monad (Feature)
 import Selenium.Monad (attempt)
 
 type EpicTitle = String
-type Hook eff o = Feature eff o
+type Hook eff b o = Feature eff b o
 type ScenarioTitle = String
 type KnownIssueUrl = String
 
 scenario
-  ∷ forall eff o
-  .  EpicTitle
-  → Hook eff o Unit
-  → Hook eff o Unit
+  ∷ forall eff b o
+  . EpicTitle
+  → Hook eff b o Unit
+  → Hook eff b o Unit
   → ScenarioTitle
   → Array KnownIssueUrl
-  → Feature eff o Unit
-  → Feature eff o Unit
+  → Feature eff b o Unit
+  → Feature eff b o Unit
 scenario epic before after title knownIssues actions =
   sectionMsg title' *> runHook before *> actions'
   where
@@ -48,16 +48,16 @@ scenario epic before after title knownIssues actions =
   warning ∷ String → String
   warning s = "Warning: " <> s
 
-  warn ∷ String → Feature eff o Unit
+  warn ∷ String → Feature eff b o Unit
   warn = warnMsg <<< warning
 
-  unexpectedSuccess ∷ Feature eff o Unit
+  unexpectedSuccess ∷ Feature eff b o Unit
   unexpectedSuccess =
     warn
       $ "Ok despite known issues, if these issues are resolved please remove them\n"
       <> knownIssuesString
 
-  actions' ∷ Feature eff o Unit
+  actions' ∷ Feature eff b o Unit
   actions' | knownIssues == [] =
     attempt actions >>=
       case _ of
@@ -69,7 +69,7 @@ scenario epic before after title knownIssues actions =
         Left e → logCurrentScreen *> warn (message e) *> warn knownIssuesWarning *> runHook after
         Right _ → runHook after *> unexpectedSuccess
 
-  runHook ∷ Feature eff o Unit → Feature eff o Unit
+  runHook ∷ Feature eff b o Unit → Feature eff b o Unit
   runHook hook | knownIssues == [] =
     attempt hook >>=
       case _ of

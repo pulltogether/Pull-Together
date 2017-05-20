@@ -11,13 +11,14 @@ import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Console as Ec
 import Control.Monad.Eff.Exception (EXCEPTION, Error, message)
 import Control.Monad.Eff.Ref (REF, newRef, readRef)
-import Control.Monad.Reader.Trans (runReaderT)
+import Control.Monad.State.Trans (runStateT)
 import Control.Monad.Error.Class (throwError)
 
 import Data.Int as Int
 import Data.Posix.Signal (Signal(SIGTERM))
 import Data.String as S
 import Data.Time.Duration (Milliseconds(..))
+import Data.Tuple (Tuple(Tuple), fst, snd)
 import Data.Either (Either(Left, Right), either)
 import Data.Maybe (Maybe)
 import Data.Foldable (traverse_)
@@ -62,18 +63,33 @@ type Effects =
 
 runTests ∷ Config → Aff Effects Unit
 runTests config = do
-  driver ← build do
-    withCapabilities $ browserCapabilities Chrome
+  driver1 ← build $ withCapabilities $ browserCapabilities Chrome
+  driver2 ← build $ withCapabilities $ browserCapabilities Chrome
+  driver3 ← build $ withCapabilities $ browserCapabilities Chrome
+
+  let fatima = Tuple driver1 { name: "Fatima", password: "TAfgF98HVA" }
+  let amani = Tuple driver2 { name: "Amani", password: "HpJ4SFXhOt" }
+  let nura = Tuple driver3 { name: "Nura", password: "NhE1xDX5L1" }
 
   let
     defaultTimeout = Milliseconds $ Int.toNumber config.selenium.waitTime
-    readerInp = { config, defaultTimeout, driver }
+    readerInp =
+      { config
+      , defaultTimeout
+      , person: snd fatima
+      , driver: fst fatima 
+      , fatima
+      , nura
+      , amani
+      }
 
-  res ← attempt $ flip runReaderT readerInp do
+  res ← attempt $ flip runStateT readerInp do
     setWindowSize { height: 800, width: 1024 }
     test
 
-  apathize $ quit driver
+  apathize $ quit driver1
+  apathize $ quit driver2
+  apathize $ quit driver3
   either throwError (const $ pure unit) res
 
 copyFile

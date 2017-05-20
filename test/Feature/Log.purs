@@ -24,16 +24,16 @@ import Control.Monad.Eff.Exception (error)
 import Control.Monad.Error.Class (throwError)
 import Test.Feature.Monad (Feature)
 
-successMsg :: forall eff o. String -> Feature eff o Unit
+successMsg :: forall eff b o. String -> Feature eff b o Unit
 successMsg msg = void $ lift $ log $ green msg
 
-errorMsg :: forall a eff o. String -> Feature eff o a
+errorMsg :: forall a b eff o. String -> Feature eff b o a
 errorMsg msg = do
   lift $ log $ red msg
   throwError $ error msg
 
-sectionMsg :: forall eff o. String -> Feature eff o Unit
+sectionMsg :: forall eff b o. String -> Feature eff b o Unit
 sectionMsg msg = void $ lift $ log $ magenta $ "\n" <> msg
 
-warnMsg :: forall eff o. String -> Feature eff o Unit
+warnMsg :: forall eff b o. String -> Feature eff b o Unit
 warnMsg msg = void $ lift $ log $ yellow msg

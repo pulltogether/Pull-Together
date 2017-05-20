@@ -17,14 +17,26 @@ limitations under the License.
 module Test.PullTogether.Feature.Monad where
 
 import Prelude
-
-import Control.Monad.Reader.Class (ask)
-
-import Test.Feature.Monad (Feature)
+import Control.Monad.State.Class (get)
+import Test.Feature.Monad (Feature, Person)
 import Test.PullTogether.Feature.Config (Config)
 import Test.PullTogether.Feature.Effects (Effects)
 
-type PTFeature = Feature (Effects ()) (config :: Config)
+type PTPersonDetails =
+  { name ∷ String, password ∷ String }
+
+type PTPerson =
+  Person PTPersonDetails
+
+type PTFeature =
+   Feature
+     (Effects ())
+     PTPersonDetails
+     ( config ∷ Config
+     , fatima ∷ PTPerson
+     , nura ∷ PTPerson
+     , amani ∷ PTPerson
+     )
 
 getConfig :: PTFeature Config
-getConfig = _.config <$> ask
+getConfig = _.config <$> get

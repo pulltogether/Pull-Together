@@ -83,15 +83,15 @@ type FilePath = String
 smallWaitTime ∷ Int
 smallWaitTime = 500
 
-finderInternalFindAllNotRepeatedly ∷ ∀ eff o. XPath → Feature eff o (Array Element)
+finderInternalFindAllNotRepeatedly ∷ ∀ eff b o. XPath → Feature eff b o (Array Element)
 finderInternalFindAllNotRepeatedly =
   map toUnfoldable <<< findElements <=< byXPath
 
 -- Basic XPath dependent finders
-findAllNotRepeatedly ∷ ∀ eff o. XPath → Feature eff o (Array Element)
+findAllNotRepeatedly ∷ ∀ eff b o. XPath → Feature eff b o (Array Element)
 findAllNotRepeatedly = findAllWithPropertiesNotRepeatedly Map.empty
 
-findNotRepeatedly ∷ ∀ eff o. XPath → Feature eff o Element
+findNotRepeatedly ∷ ∀ eff b o. XPath → Feature eff b o Element
 findNotRepeatedly xPath =
   singletonValue throwNoElements throwMoreThanOneElement
     =<< findAllNotRepeatedly xPath
@@ -108,44 +108,44 @@ findNotRepeatedly xPath =
           ("Found (" <> show i <> ") more than one element")
           xPath
 
-findAtLeastOneNotRepeatedly ∷ ∀ eff o. XPath → Feature eff o (Array Element)
+findAtLeastOneNotRepeatedly ∷ ∀ eff b o. XPath → Feature eff b o (Array Element)
 findAtLeastOneNotRepeatedly xPath =
   headOrThrow =<< findAllNotRepeatedly xPath
   where
   headOrThrow = passover (throwIfEmpty noElementsMessage)
   noElementsMessage = XPath.errorMessage "Couldn't find an element" xPath
 
-find ∷ ∀ eff o. XPath → Feature eff o Element
+find ∷ ∀ eff b o. XPath → Feature eff b o Element
 find xPath = expectPresented xPath *> findNotRepeatedly xPath
 
-findAll ∷ ∀ eff o. XPath → Feature eff o (Array Element)
+findAll ∷ ∀ eff b o. XPath → Feature eff b o (Array Element)
 findAll xPath = expectPresented xPath *> findAllNotRepeatedly xPath
 
 -- Property and XPath dependent finders
 findAllInvisibleWithPropertiesNotRepeatedly
-  ∷ ∀ eff o
+  ∷ ∀ eff b o
   . Properties
   → XPath
-  → Feature eff o (Array Element)
+  → Feature eff b o (Array Element)
 findAllInvisibleWithPropertiesNotRepeatedly properties xPath =
   elementsWithProperties properties
     =<< finderInternalFindAllNotRepeatedly xPath
 
 findAllWithPropertiesNotRepeatedly
-  ∷ ∀ eff o
+  ∷ ∀ eff b o
   . Properties
   → XPath
-  → Feature eff o (Array Element)
+  → Feature eff b o (Array Element)
 findAllWithPropertiesNotRepeatedly properties xPath =
   passover (expectPresentedVisualElements properties xPath)
     =<< elementsWithProperties properties
     =<< finderInternalFindAllNotRepeatedly xPath
 
 findAtLeastOneWithPropertiesNotRepeatedly
-  ∷ ∀ eff o
+  ∷ ∀ eff b o
   . Properties
   → XPath
-  → Feature eff o (Array Element)
+  → Feature eff b o (Array Element)
 findAtLeastOneWithPropertiesNotRepeatedly properties xPath =
   headOrThrow
     =<< elementsWithProperties properties
@@ -159,10 +159,10 @@ findAtLeastOneWithPropertiesNotRepeatedly properties xPath =
       xPath
 
 findInvisibleWithPropertiesNotRepeatedly
-  ∷ ∀ eff o
+  ∷ ∀ eff b o
   . Properties
   → XPath
-  → Feature eff o Element
+  → Feature eff b o Element
 findInvisibleWithPropertiesNotRepeatedly properties xPath =
   singletonValue throwNoElements throwMoreThanOneElement
     =<< findAllInvisibleWithPropertiesNotRepeatedly properties xPath
@@ -180,10 +180,10 @@ findInvisibleWithPropertiesNotRepeatedly properties xPath =
        $ moreThanOneElementRawMessage i) xPath
 
 findWithPropertiesNotRepeatedly
-  ∷ ∀ eff o
+  ∷ ∀ eff b o
   . Properties
   → XPath
-  → Feature eff o Element
+  → Feature eff b o Element
 findWithPropertiesNotRepeatedly properties xPath =
   singletonValue throwNoElements throwMoreThanOneElement
     =<< findAllWithPropertiesNotRepeatedly properties xPath
@@ -201,24 +201,24 @@ findWithPropertiesNotRepeatedly properties xPath =
        $ moreThanOneElementRawMessage i) xPath
 
 findAllWithProperties
-  ∷ ∀ eff o
+  ∷ ∀ eff b o
   . Properties
   → XPath
-  → Feature eff o (Array Element)
+  → Feature eff b o (Array Element)
 findAllWithProperties properties xPath =
   expectPresentedWithProperties properties xPath
     *> findAllWithPropertiesNotRepeatedly properties xPath
 
 findAtLeastOneWithProperties
-  ∷ ∀ eff o
+  ∷ ∀ eff b o
   . Properties
   → XPath
-  → Feature eff o (Array Element)
+  → Feature eff b o (Array Element)
 findAtLeastOneWithProperties properties xPath =
   expectPresentedWithProperties properties xPath
     *> findAtLeastOneWithPropertiesNotRepeatedly properties xPath
 
-findWithProperties ∷ ∀ eff o. Properties → XPath → Feature eff o Element
+findWithProperties ∷ ∀ eff b o. Properties → XPath → Feature eff b o Element
 findWithProperties properties xPath =
   expectPresentedWithProperties properties xPath
     *> findWithPropertiesNotRepeatedly properties xPath
@@ -255,11 +255,11 @@ withPropertiesMessage xs s =
   s <> " with the attributes or properties: " <> printProperties xs
 
 -- Expectations
-expectNotPresentedNotRepeatedly ∷ ∀ eff o. XPath → Feature eff o Unit
+expectNotPresentedNotRepeatedly ∷ ∀ eff b o. XPath → Feature eff b o Unit
 expectNotPresentedNotRepeatedly xPath =
   expectNotPresentedWithPropertiesNotRepeatedly Map.empty xPath
 
-expectPresentedNotRepeatedly ∷ ∀ eff o. XPath → Feature eff o Unit
+expectPresentedNotRepeatedly ∷ ∀ eff b o. XPath → Feature eff b o Unit
 expectPresentedNotRepeatedly xPath =
   expectPresentedWithPropertiesNotRepeatedly Map.empty xPath
 
@@ -267,24 +267,24 @@ expectPresentedNotRepeatedly xPath =
 -- |
 -- | * not exist
 -- | * or be hidden visually and for them and their ancestors to be aria-hidden.
-expectNotPresented ∷ ∀ eff o. XPath → Feature eff o Unit
+expectNotPresented ∷ ∀ eff b o. XPath → Feature eff b o Unit
 expectNotPresented xPath = expectNotPresentedWithProperties Map.empty xPath
 
 -- | Expect nodes found with the providied XPath to exist, be presented visually
 -- | and for them and their ancestors not to be aria-hidden.
-expectPresented ∷ ∀ eff o. XPath → Feature eff o Unit
+expectPresented ∷ ∀ eff b o. XPath → Feature eff b o Unit
 expectPresented xPath = expectPresentedWithProperties Map.empty xPath
 
 validateJustTrue
-  ∷ ∀ eff o
+  ∷ ∀ eff b o
   . (String → String)
   → String
   → Maybe String
-  → Feature eff o Unit
+  → Feature eff b o Unit
 validateJustTrue _ _ (Just "true") = pure unit
 validateJustTrue error xPath _ = liftEff $ throw $ error xPath
 
-expectNotPresentedAria ∷ ∀ eff o. Properties → XPath → Feature eff o Unit
+expectNotPresentedAria ∷ ∀ eff b o. Properties → XPath → Feature eff b o Unit
 expectNotPresentedAria properties xPath =
   ifFalse checkAria <<< eq 0 <<< length
     =<< findAllInvisibleWithPropertiesNotRepeatedly properties xPath
@@ -309,10 +309,10 @@ expectNotPresentedAria properties xPath =
       <> " attribute"
 
 expectNotPresentedVisual
-  ∷ ∀ eff o
+  ∷ ∀ eff b o
   . Properties
   → XPath
-  → Feature eff o Unit
+  → Feature eff b o Unit
 expectNotPresentedVisual properties xPath =
   expectNotPresentedVisualElements properties xPath
     =<< findAllInvisibleWithPropertiesNotRepeatedly properties xPath
@@ -323,19 +323,19 @@ expectNotPresentedVisual properties xPath =
 -- | * not exist
 -- | * or be hidden visually and for them or their ancestors to be aria-hidden.
 expectNotPresentedWithProperties
-  ∷ ∀ eff o
+  ∷ ∀ eff b o
   . Properties
   → XPath
-  → Feature eff o Unit
+  → Feature eff b o Unit
 expectNotPresentedWithProperties properties xPath =
   tryRepeatedlyTo
     $ expectNotPresentedWithPropertiesNotRepeatedly properties xPath
 
 expectNotPresentedWithPropertiesNotRepeatedly
-  ∷ ∀ eff o
+  ∷ ∀ eff b o
   . Properties
   → XPath
-  → Feature eff o Unit
+  → Feature eff b o Unit
 expectNotPresentedWithPropertiesNotRepeatedly properties xPath =
   expectNotPresentedVisual properties xPath
     *> expectNotPresentedAria properties xPath
@@ -344,18 +344,18 @@ expectNotPresentedWithPropertiesNotRepeatedly properties xPath =
 -- | attributes or properties to exist, be presented visually and for them or
 -- | their ancestors not to be aria-hidden.
 expectPresentedWithProperties
-  ∷ ∀ eff o
+  ∷ ∀ eff b o
   . Properties
   → XPath
-  → Feature eff o Unit
+  → Feature eff b o Unit
 expectPresentedWithProperties ps xPath =
   tryRepeatedlyTo $ expectPresentedWithPropertiesNotRepeatedly ps xPath
 
 expectPresentedWithPropertiesNotRepeatedly
-  ∷ ∀ eff o
+  ∷ ∀ eff b o
   . Properties
   → XPath
-  → Feature eff o Unit
+  → Feature eff b o Unit
 expectPresentedWithPropertiesNotRepeatedly properties xPath =
   expectNode
     *> expectPresentedVisual
@@ -400,7 +400,7 @@ expectPresentedWithPropertiesNotRepeatedly properties xPath =
 -- | When your select node's value matches the option text use
 -- | `expectPresentedWithProperties (Map.singleton "value" $ Just "the option text")`
 -- | instead.
-expectSelectValue ∷ ∀ eff o. String → XPath → Feature eff o Unit
+expectSelectValue ∷ ∀ eff b o. String → XPath → Feature eff b o Unit
 expectSelectValue value xPath =
   tryRepeatedlyTo $ getOptionValue >>= expectPresentedWithValue
   where
@@ -413,11 +413,11 @@ expectSelectValue value xPath =
 -- | Expects the frst provided file to be in the provided folder and to match
 -- | the second provided file.
 expectDownloadedTextFileToMatchFile
-  ∷ ∀ eff o
+  ∷ ∀ eff b o
   . FilePath
   → FilePath
   → FilePath
-  → Feature eff o Unit
+  → Feature eff b o Unit
 expectDownloadedTextFileToMatchFile downloadFolder downloadedFileName expectedFilePath = do
   expectedString ← appendToCwd expectedFilePath
   expectedFile ← lift $ readTextFile UTF8 $ expectedString
@@ -448,79 +448,79 @@ updateProperty name value =
 
 -- XPath dependent interactions
 -- | Clear the element's value
-clear ∷ ∀ eff o. XPath → Feature eff o Unit
+clear ∷ ∀ eff b o. XPath → Feature eff b o Unit
 clear xPath = clearWithProperties Map.empty xPath
 
 -- | Check the checkbox node found with the provided XPath.
-check ∷ ∀ eff o. XPath → Feature eff o Unit
+check ∷ ∀ eff b o. XPath → Feature eff b o Unit
 check xPath = checkWithProperties Map.empty xPath
 
 -- | Uncheck the checkbox node found with the provided XPath.
-uncheck ∷ ∀ eff o. XPath → Feature eff o Unit
+uncheck ∷ ∀ eff b o. XPath → Feature eff b o Unit
 uncheck xPath = uncheckWithProperties Map.empty xPath
 
 -- | Push the radio button node found with the provided XPath.
-pushRadioButton ∷ ∀ eff o. XPath → Feature eff o Unit
+pushRadioButton ∷ ∀ eff b o. XPath → Feature eff b o Unit
 pushRadioButton xPath = pushRadioButtonWithProperties Map.empty xPath
 
 -- | Provide a value for the text or number field found with the provided
 -- | XPath.
-provideFieldValue ∷ ∀ eff o. XPath → String → Feature eff o Unit
+provideFieldValue ∷ ∀ eff b o. XPath → String → Feature eff b o Unit
 provideFieldValue =
   provideFieldValueWithProperties Map.empty
 
 -- | Select option with the provided text from the select node found with
 -- | the provided XPath.
-selectFromDropdown ∷ ∀ eff o. XPath → String → Feature eff o Unit
+selectFromDropdown ∷ ∀ eff b o. XPath → String → Feature eff b o Unit
 selectFromDropdown xPath text = selectFromDropdownWithProperties Map.empty xPath text
 
 -- | Click the node found with the provided XPath.
-click ∷ ∀ eff o. XPath → Feature eff o Unit
+click ∷ ∀ eff b o. XPath → Feature eff b o Unit
 click xPath = clickWithProperties Map.empty xPath
 
 -- | Click all nodes found with the provided XPath.
-clickAll ∷ ∀ eff o. XPath → Feature eff o Unit
+clickAll ∷ ∀ eff b o. XPath → Feature eff b o Unit
 clickAll xPath = clickAllWithProperties Map.empty xPath
 
-clickNotRepeatedly ∷ ∀ eff o. XPath → Feature eff o Unit
+clickNotRepeatedly ∷ ∀ eff b o. XPath → Feature eff b o Unit
 clickNotRepeatedly xPath = clickWithPropertiesNotRepeatedly Map.empty xPath
 
 -- | Drag node found with the first provided XPath to the node found with the
 -- | second provided XPath.
-dragAndDrop ∷ ∀ eff o. XPath → XPath → Feature eff o Unit
+dragAndDrop ∷ ∀ eff b o. XPath → XPath → Feature eff b o Unit
 dragAndDrop fromXPath toXPath =
   dragAndDropWithProperties Map.empty fromXPath Map.empty toXPath
 
 -- | Hover over the node found with the provided XPath.
-hover ∷ ∀ eff o. XPath → Feature eff o Unit
+hover ∷ ∀ eff b o. XPath → Feature eff b o Unit
 hover xPath = hoverWithProperties Map.empty xPath
 
 -- | Provide file input value to the file input found with the provided XPath.
-provideFileInputValue ∷ ∀ eff o. XPath → FilePath → Feature eff o Unit
+provideFileInputValue ∷ ∀ eff b o. XPath → FilePath → Feature eff b o Unit
 provideFileInputValue xPath fileName = provideFileInputValueWithProperties Map.empty xPath fileName
 
 -- | Navigate to the URL presented in the field found with the providied Xath.
 -- |
 -- | URLs are often presented in text inputs so they can be copied. This
 -- | function allows feature tests to access such URLs.
-accessUrlFromFieldValue ∷ ∀ eff o. XPath → Feature eff o Unit
+accessUrlFromFieldValue ∷ ∀ eff b o. XPath → Feature eff b o Unit
 accessUrlFromFieldValue xPath = accessUrlFromFieldValueWithProperties Map.empty xPath
 
 -- XPath and property dependent interactions
 clearWithProperties
-  ∷ ∀ eff o
+  ∷ ∀ eff b o
   . Properties
   → XPath
-  → Feature eff o Unit
+  → Feature eff b o Unit
 clearWithProperties properties xPath =
   tryRepeatedlyTo $ Selenium.clearEl =<< findWithPropertiesNotRepeatedly properties xPath
 
 checkWithProperties'
-  ∷ ∀ eff o
+  ∷ ∀ eff b o
   . (Maybe String)
   → Properties
   → XPath
-  → Feature eff o Unit
+  → Feature eff b o Unit
 checkWithProperties' checked properties xPath =
   (traverse_ clickEl) =<< findAtLeastOneWithPropertiesNotRepeatedly properties' xPath
   where
@@ -528,44 +528,44 @@ checkWithProperties' checked properties xPath =
 
 -- | Check the checkbox node with the provided properties found with the
 -- | provided XPath.
-checkWithProperties ∷ ∀ eff o. Properties → XPath → Feature eff o Unit
+checkWithProperties ∷ ∀ eff b o. Properties → XPath → Feature eff b o Unit
 checkWithProperties properties xPath =
   tryRepeatedlyTo $ checkWithProperties' Nothing properties xPath
 
 -- | Uncheck the checkbox node with the provided properties found with the
 -- | provided XPath.
-uncheckWithProperties ∷ ∀ eff o. Properties → XPath → Feature eff o Unit
+uncheckWithProperties ∷ ∀ eff b o. Properties → XPath → Feature eff b o Unit
 uncheckWithProperties properties xPath =
   tryRepeatedlyTo $ checkWithProperties' (Just "true") properties xPath
 
 -- | Push the radio button node with the provided properties found with the
 -- | provided XPath.
-pushRadioButtonWithProperties ∷ ∀ eff o. Properties → XPath → Feature eff o Unit
+pushRadioButtonWithProperties ∷ ∀ eff b o. Properties → XPath → Feature eff b o Unit
 pushRadioButtonWithProperties properties xPath =
   tryRepeatedlyTo $ checkWithProperties' Nothing properties xPath
 
 -- | Provide a value for the text or number field with the provided properties
 -- | found with the provided XPath.
 provideFieldValueWithProperties
-  ∷ ∀ eff o
+  ∷ ∀ eff b o
   . Properties
   → XPath
   → String
-  → Feature eff o Unit
+  → Feature eff b o Unit
 provideFieldValueWithProperties properties xPath value =
   tryRepeatedlyTo $ provideFieldValueElement value =<< findWithPropertiesNotRepeatedly properties xPath
 
 -- | Select option with the provided text from the select node with the provided
 -- | attributes or properties found with the provided XPath.
-selectFromDropdownWithProperties ∷ ∀ eff o. Properties → XPath → String → Feature eff o Unit
+selectFromDropdownWithProperties ∷ ∀ eff b o. Properties → XPath → String → Feature eff b o Unit
 selectFromDropdownWithProperties properties xPath text =
   tryRepeatedlyTo $ selectFromDropdownElement text =<< findWithPropertiesNotRepeatedly properties xPath
 
 clickWithPropertiesNotRepeatedly
-  ∷ ∀ eff o
+  ∷ ∀ eff b o
   . Properties
   → XPath
-  → Feature eff o Unit
+  → Feature eff b o Unit
 clickWithPropertiesNotRepeatedly properties =
   clickEl <=< findWithPropertiesNotRepeatedly properties
 
@@ -573,16 +573,16 @@ clickWithPropertiesNotRepeatedly properties =
 -- | Click node with the provided properties or attributes found with the
 -- | provided XPath.
 clickWithProperties
-  ∷ ∀ eff o
+  ∷ ∀ eff b o
   . Properties
   → XPath
-  → Feature eff o Unit
+  → Feature eff b o Unit
 clickWithProperties properties xPath =
   tryRepeatedlyTo $ clickEl =<< findWithPropertiesNotRepeatedly properties xPath
 
 -- | Click all nodes with the provided properties or attributes found with the
 -- | provided XPath.
-clickAllWithProperties ∷ ∀ eff o. Properties → XPath → Feature eff o Unit
+clickAllWithProperties ∷ ∀ eff b o. Properties → XPath → Feature eff b o Unit
 clickAllWithProperties properties xPath =
   tryRepeatedlyTo
     $ (traverse_ clickEl)
@@ -592,12 +592,12 @@ clickAllWithProperties properties xPath =
 -- | provided XPath to the node with the second provided properties or attributes found with
 -- | the second provided XPath.
 dragAndDropWithProperties
-  ∷ ∀ eff o
+  ∷ ∀ eff b o
   . Properties
   → XPath
   → Properties
   → XPath
-  → Feature eff o Unit
+  → Feature eff b o Unit
 dragAndDropWithProperties fromProperties fromXPath toProperties toXPath =
   tryRepeatedlyTo do
     from ← findWithPropertiesNotRepeatedly fromProperties fromXPath
@@ -619,14 +619,14 @@ dragAndDropWithProperties fromProperties fromXPath toProperties toXPath =
 
 -- | Hover over the node with the provided properties or attributes found with
 -- | the provided XPath.
-hoverWithProperties ∷ ∀ eff o. Properties → XPath → Feature eff o Unit
+hoverWithProperties ∷ ∀ eff b o. Properties → XPath → Feature eff b o Unit
 hoverWithProperties properties xPath =
   tryRepeatedlyTo $ hoverElement =<< findWithPropertiesNotRepeatedly properties xPath
 
 -- | Provide file input value to the file input with the provided attributes or
 -- | properties found with the provided XPath. This also will find invisible
 -- | file inputs.
-provideFileInputValueWithProperties ∷ ∀ eff o. Properties → XPath → FilePath → Feature eff o Unit
+provideFileInputValueWithProperties ∷ ∀ eff b o. Properties → XPath → FilePath → Feature eff b o Unit
 provideFileInputValueWithProperties properties xPath filePath =
   tryRepeatedlyTo $ sendKeysEl filePath
     =<< findInvisibleWithPropertiesNotRepeatedly properties xPath
@@ -636,7 +636,7 @@ provideFileInputValueWithProperties properties xPath filePath =
 -- |
 -- | URLs are often presented in text inputs so they can be copied. This
 -- | function allows feature tests to access such URLs.
-accessUrlFromFieldValueWithProperties ∷ ∀ eff o. Properties → XPath → Feature eff o Unit
+accessUrlFromFieldValueWithProperties ∷ ∀ eff b o. Properties → XPath → Feature eff b o Unit
 accessUrlFromFieldValueWithProperties properties xPath =
   tryRepeatedlyTo $ get =<< maybe throwNullValueError pure =<< getValue =<< findField
   where
@@ -649,70 +649,70 @@ accessUrlFromFieldValueWithProperties properties xPath =
     "Expected a non null value attribute or property for the element found with"
 
 -- Independent interactions
-typeString ∷ ∀ eff o. String → Feature eff o Unit
+typeString ∷ ∀ eff b o. String → Feature eff b o Unit
 typeString string = Selenium.sequence $ FeatureSequence.keys string
 
-pressEnter ∷ ∀ eff o. Feature eff o Unit
+pressEnter ∷ ∀ eff b o. Feature eff b o Unit
 pressEnter = Selenium.sequence $ FeatureSequence.sendEnter
 
 -- Element dependent interactions
-clickAllElements ∷ ∀ eff o. Array Element → Feature eff o Unit
+clickAllElements ∷ ∀ eff b o. Array Element → Feature eff b o Unit
 clickAllElements = traverse_ clickEl
 
-clearElement ∷ ∀ eff o. Element → Feature eff o Unit
+clearElement ∷ ∀ eff b o. Element → Feature eff b o Unit
 clearElement element =
   Selenium.clickEl element
     *> moveToEndOfString
     *> typeEnoughBackspaces
   where
-  getValueLength ∷ Feature eff o (Maybe Int)
+  getValueLength ∷ Feature eff b o (Maybe Int)
   getValueLength = map String.length <$> Selenium.getAttribute element "value"
 
-  getTextLength ∷ Feature eff o Int
+  getTextLength ∷ Feature eff b o Int
   getTextLength = map String.length $ Selenium.getText element
 
-  getTotalLength ∷ Feature eff o Int
+  getTotalLength ∷ Feature eff b o Int
   getTotalLength = do
     vl ← map (fromMaybe zero) getValueLength
     tl ← getTextLength
     pure $ vl + tl
 
-  typeEnoughBackspaces ∷ Feature eff o Unit
+  typeEnoughBackspaces ∷ Feature eff b o Unit
   typeEnoughBackspaces = typeBackspaces =<< getTotalLength
 
-  moveToEndOfString ∷ Feature eff o Unit
+  moveToEndOfString ∷ Feature eff b o Unit
   moveToEndOfString = typeRightArrow =<< getTotalLength
 
-  typeBackspaces ∷ Int → Feature eff o Unit
+  typeBackspaces ∷ Int → Feature eff b o Unit
   typeBackspaces = Selenium.sequence <<< FeatureSequence.sendBackspaces
 
-  typeRightArrow ∷ Int → Feature eff o Unit
+  typeRightArrow ∷ Int → Feature eff b o Unit
   typeRightArrow = Selenium.sequence <<< FeatureSequence.sendRights
 
 
-hoverElement ∷ ∀ eff o. Element → Feature eff o Unit
+hoverElement ∷ ∀ eff b o. Element → Feature eff b o Unit
 hoverElement = Selenium.sequence <<< Sequence.hover
 
-provideFieldValueElement ∷ ∀ eff o. String → Element → Feature eff o Unit
+provideFieldValueElement ∷ ∀ eff b o. String → Element → Feature eff b o Unit
 provideFieldValueElement value element =
   Selenium.clickEl element *> clearElement element *> typeString value
 
-selectFromDropdownElement ∷ ∀ eff o. String → Element → Feature eff o Unit
+selectFromDropdownElement ∷ ∀ eff b o. String → Element → Feature eff b o Unit
 selectFromDropdownElement text element = do
   clickEl element
   typeString text
   pressEnter
 
-dragAndDropElement ∷ ∀ eff o. Element → Location → Feature eff o Unit
+dragAndDropElement ∷ ∀ eff b o. Element → Location → Feature eff b o Unit
 dragAndDropElement from =
   Selenium.sequence <<< Sequence.dndToLocation from
 
 -- Element dependent functions
 elementsWithProperties
-  ∷ ∀ eff o
+  ∷ ∀ eff b o
   . Properties
   → Array Element
-  → Feature eff o (Array Element)
+  → Feature eff b o (Array Element)
 elementsWithProperties properties
   | Map.isEmpty properties = pure
 elementsWithProperties properties =
@@ -732,7 +732,7 @@ elementsWithProperties properties =
 
   getPropertiesForElement
     ∷ Element
-    → Feature eff o Properties
+    → Feature eff b o Properties
   getPropertiesForElement el =
     Map.fromFoldable
       <$> traverse (\k → Tuple k <$> ((later (Milliseconds zero) $ getAttribute el k))) propKeys
@@ -741,16 +741,16 @@ elementsWithProperties properties =
     ∷ ∀ t
     . (Traversable t)
     ⇒ t Element
-    → Feature eff o (t (Tuple Element Properties))
+    → Feature eff b o (t (Tuple Element Properties))
   elementsPropertiesTuples =
     traverse (\el → Tuple el <$> getPropertiesForElement el)
 
 expectNotPresentedVisualElements
-  ∷ ∀ eff o
+  ∷ ∀ eff b o
   . Properties
   → XPath
   → Array Element
-  → Feature eff o Unit
+  → Feature eff b o Unit
 expectNotPresentedVisualElements properties xPath =
   traverse_ validate
   where
@@ -766,11 +766,11 @@ expectNotPresentedVisualElements properties xPath =
       "Expected to find no visually displayed elements"
 
 expectPresentedVisualElements
-  ∷ ∀ eff o
+  ∷ ∀ eff b o
   . Properties
   → String
   → Array Element
-  → Feature eff o Unit
+  → Feature eff b o Unit
 expectPresentedVisualElements properties xPath =
   traverse_ (\element → hoverElement element *> validate element)
   where
@@ -786,7 +786,7 @@ expectPresentedVisualElements properties xPath =
       "Expected to only visually find displayed elements"
 
 -- Utilities
-logCurrentScreen ∷ ∀ eff o. Feature eff o Unit
+logCurrentScreen ∷ ∀ eff b o. Feature eff b o Unit
 logCurrentScreen =
   saveScreenshot path *> logScreenshot path
   where
@@ -794,7 +794,7 @@ logCurrentScreen =
   message = ("Screenshot taken now:\ndata:image/png;base64," <> _)
   logScreenshot p = (message <$> showImageFile p) >>= warnMsg
 
-showImageFile ∷ ∀ eff o. FilePath → Feature eff o String
+showImageFile ∷ ∀ eff b o. FilePath → Feature eff b o String
 showImageFile =
   showBuffer <=< readBuffer <=< getFullPath
   where
