@@ -3,7 +3,9 @@ module Test.Feature
   , XPath
   , FilePath
   , accessUrlFromFieldValue
+  , accessUrlFromFieldValueAs
   , accessUrlFromFieldValueWithProperties
+  , accessUrlFromFieldValueWithPropertiesAs
   , check
   , checkWithProperties
   , clear
@@ -67,11 +69,11 @@ import Node.FS.Aff (readFile, readTextFile, readdir, unlink)
 import Selenium.ActionSequence as Sequence
 import Selenium.Monad (get, getAttribute, clickEl, attempt, later, byXPath, tryRepeatedlyTo, findElements, isDisplayed, getLocation, getSize, saveScreenshot, sendKeysEl)
 import Selenium.Monad as Selenium
-import Selenium.Types (Element, Location)
+import Selenium.Types (Element, Location, Driver)
 
 import Test.Feature.ActionSequence as FeatureSequence
 import Test.Feature.Log (warnMsg)
-import Test.Feature.Monad (Feature, await)
+import Test.Feature.Monad (Feature, Person, await, as)
 import Test.Utils (appendToCwd, ifTrue, ifFalse, singletonValue, throwIfEmpty, passover)
 
 import XPath as XPath
@@ -506,6 +508,17 @@ provideFileInputValue xPath fileName = provideFileInputValueWithProperties Map.e
 accessUrlFromFieldValue ∷ ∀ eff b o. XPath → Feature eff b o Unit
 accessUrlFromFieldValue xPath = accessUrlFromFieldValueWithProperties Map.empty xPath
 
+-- | Navigate to the URL presented in the field found with the providied Xath.
+-- |
+-- | URLs are often presented in text inputs so they can be copied. This
+-- | function allows feature tests to access such URLs.
+accessUrlFromFieldValueAs
+  ∷ ∀ eff b o
+  . ({ person ∷ b, driver ∷ Driver, defaultTimeout ∷ Milliseconds | o } → Person b)
+  → XPath
+  → Feature eff b o Unit
+accessUrlFromFieldValueAs person xPath = accessUrlFromFieldValueWithPropertiesAs person Map.empty xPath
+
 -- XPath and property dependent interactions
 clearWithProperties
   ∷ ∀ eff b o
@@ -639,6 +652,28 @@ provideFileInputValueWithProperties properties xPath filePath =
 accessUrlFromFieldValueWithProperties ∷ ∀ eff b o. Properties → XPath → Feature eff b o Unit
 accessUrlFromFieldValueWithProperties properties xPath =
   tryRepeatedlyTo $ get =<< maybe throwNullValueError pure =<< getValue =<< findField
+  where
+  findField = findWithPropertiesNotRepeatedly properties xPath
+  getValue = flip getAttribute "value"
+  throwNullValueError = liftEff $ throw nullValueErrorMessage
+  nullValueErrorMessage =
+    XPath.errorMessage (withPropertiesMessage properties rawNullValueErrorMessage) xPath
+  rawNullValueErrorMessage =
+    "Expected a non null value attribute or property for the element found with"
+
+-- | Navigate to the URL presented in the field with the provided attributes or
+-- | properties found with the providied Xath.
+-- |
+-- | URLs are often presented in text inputs so they can be copied. This
+-- | function allows feature tests to access such URLs.
+accessUrlFromFieldValueWithPropertiesAs
+  ∷ ∀ eff b o
+  . ({ person ∷ b, driver ∷ Driver, defaultTimeout ∷ Milliseconds | o } → Person b)
+  → Properties
+  → XPath
+  → Feature eff b o Unit
+accessUrlFromFieldValueWithPropertiesAs person properties xPath =
+  tryRepeatedlyTo $ get =<< passover (const $ as person) =<< maybe throwNullValueError pure =<< getValue =<< findField
   where
   findField = findWithPropertiesNotRepeatedly properties xPath
   getValue = flip getAttribute "value"

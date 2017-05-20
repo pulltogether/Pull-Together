@@ -2,6 +2,8 @@ module Test.PullTogether.Feature.Test where
 
 import Prelude
 import Test.PullTogether.Feature.Interactions as Interact
+import Selenium.Monad (get)
+import Test.Feature (accessUrlFromFieldValueAs)
 import Test.Feature.Monad (as)
 import Test.Feature.Scenario (KnownIssueUrl, scenario)
 import Test.PullTogether.Feature.Monad (PTFeature)
@@ -15,6 +17,11 @@ pullTogetherScenario =
 
 test ∷ PTFeature Unit
 test = do
+  pullTogetherScenario "Test CMUFT" [] do
+    as _.amani
+    get "data:text/html;base64,PGlucHV0IHZhbHVlPSJodHRwOi8vZ29vZ2xlLmNvbSI+"
+    accessUrlFromFieldValueAs _.nura "//input"
+
   pullTogetherScenario "Start a pull together" [] do
     as _.amani
     --Interact.accessPullTogether
@@ -123,3 +130,4 @@ test = do
     --Expect.reply Note.selfWorthNote [ Reply.sympatheticReply ]
     --Interact.acceptWarnings [ Warning.selfWorth ]
     --Expect.reply Note.selfWorthNote [ Reply.empatheticReply ]
+

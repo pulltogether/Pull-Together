@@ -41,19 +41,6 @@ And I should have the option to reply to my own note
 And I should have the option to add a warning to my own note
 And I should be able to obscure my note behind its warnings
 
-Scenario: Leave an note without warnings
-Given someone has started a pull together
-And some people have left some notes
-When I sign into pull together
-And I access the option to post a note
-And I write a note
-And I post the note
-And I should be prompted to confirm that I want to post the note without warnings
-When I confirm
-Then I should be presented with the list of notes with my note first
-And I should have the option to reply to my own note
-And I should have the option to add a warning to my own note
-
 Scenario: Invite people to pull together
 When I sign in to pull together
 And invite someone
