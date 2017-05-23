@@ -20,6 +20,7 @@
     "purescript-node-path": "^2.0.0",
     "purescript-node-process": "^4.0.0",
     "purescript-strongcheck": "^3.1.0",
-    "purescript-webdriver": "^4.0.0"
+    "purescript-webdriver": "^4.0.0",
+    "purescript-debug": "^3.0.0"
   }
 }

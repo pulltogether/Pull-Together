@@ -2,11 +2,11 @@ module Test.PullTogether.Feature.Test where
 
 import Prelude
 import Test.PullTogether.Feature.Interactions as Interact
-import Selenium.Monad (get)
-import Test.Feature (accessUrlFromFieldValueAs)
 import Test.Feature.Monad (as)
 import Test.Feature.Scenario (KnownIssueUrl, scenario)
 import Test.PullTogether.Feature.Monad (PTFeature)
+
+data Read = Read | Unread
 
 pullTogetherScenario ∷ String → Array KnownIssueUrl → PTFeature Unit → PTFeature Unit
 pullTogetherScenario =
@@ -17,18 +17,15 @@ pullTogetherScenario =
 
 test ∷ PTFeature Unit
 test = do
-  pullTogetherScenario "Test CMUFT" [] do
-    as _.amani
-    get "data:text/html;base64,PGlucHV0IHZhbHVlPSJodHRwOi8vZ29vZ2xlLmNvbSI+"
-    accessUrlFromFieldValueAs _.nura "//input"
-
   pullTogetherScenario "Start a pull together" [] do
     as _.amani
-    --Interact.accessPullTogether
-    --Interact.provideGroupName
-    --Interact.providePassword
+    
+    Interact.accessPullTogether
+    Interact.provideGroupName
+    --Interact.signUp
     --Expect.noNotesMessage
-    --Expect.messagesInPidgeonhole 0
+    --Expect.newMessagesInPidgeonhole 0
+    --Expect.groupName
     Interact.signOut
     
   pullTogetherScenario "Sign in" [] do
@@ -45,12 +42,12 @@ test = do
     --Interact.invite _.nura
 
     --as _.nura
-    --Interact.providePassword
+    --Interact.signUp
     --Interact.inviteSomeone
 
     --as _.fatima
     --Interact.accessInvitationURL
-    --Interact.providePassword
+    --Interact.signUp
     Interact.signOut
   
   pullTogetherScenario "postNoteWithWarnings a note" [] do
@@ -61,7 +58,7 @@ test = do
     --Interact.invite _.nura
 
     --as _.nura
-    --Interact.providePassword
+    --Interact.signUp
     --Interact.postNoteWithWarnings Note.selfWorthNote []
     --Expect.note Note.happyNote
     --Expect.note Note.selfWorthNote
@@ -79,8 +76,10 @@ test = do
     --Interact.startAPullTogether
     --Interact.postNoteWithWarnings Note.depressionNote [ Warning.mentalHealth ]
     --Interact.postNoteWithWarnings Note.selfWorthNote []
+    --Interact.invite _.nura
 
     --as _.nura
+    --Interact.signUp
     --Interact.addWarningToNote Note.depressionNote [ Warning.depression ]
     --Expect.noteObscuredByWarnings Note.depressionNote [ Warning.mentalHealth, Warning.depression ]
     --Interact.addWarningToNote Note.selfWorthNote [ Warning.selfWorth ]
@@ -88,10 +87,12 @@ test = do
     Interact.signOut
 
   pullTogetherScenario "Check notes" [] do
-    --as _.amani
+    as _.amani
     --Interact.startAPullTogether
+    --Interact.invite _.nura
 
     --as _.nura
+    --Interact.signUp
     --Interact.postNoteWithWarnings Note.selfWorthNote [ Warning.selfWorth ]
 
     --as _.amani
@@ -99,35 +100,106 @@ test = do
 
     --as _.nura
     --Interact.postNoteWithWarnings Note.happyNote []
+    --Interact.invite _.fatima
 
     --as _.fatima
+    --Interact.signUp
     --Interact.acceptWarnings [ Warning.mentalHealth, Warning.depression, Warning.selfWorth ]
     --Expect.notesInOrder [ Note.selfWorthNote, Note.depressionNote, Note.happyNote ]
     Interact.signOut
   
-  pullTogetherScenario "Reply" [] do
+  pullTogetherScenario "Messaging" [] do
     as _.amani
-    --Interact.startAPullTogether
-    --Interact.postNoteWithWarnings Note.selfWorthNote [ Warning.selfWorth ]
-
-    --as _.fatima
-    --Interact.acceptWarnings [ Warning.selfWorth ]
-    --Interact.replyToNoteWithWarnings Note.selfWorthNote Reply.sympatheticReply []
-
-    --as _.amani
-    --Interact.checkNotes
-    --Expect.messagesInPidgeonhole 1
-
-    --as _.nura
-    --Interact.acceptWarnings [ Warning.selfWorth ]
-    --Interact.replyToNoteWithWarnings Note.selfWorthNote Reply.empatheticReply [ Warning.selfWorth ]
-
-    --as _.amani
-    --Interact.checkNotes
-    --Expect.messagesInPidgeonhole 2
-    --Interact.checkPidgeonhole
-    --Expect.messagesInPidgeonhole 0
-    --Expect.reply Note.selfWorthNote [ Reply.sympatheticReply ]
-    --Interact.acceptWarnings [ Warning.selfWorth ]
-    --Expect.reply Note.selfWorthNote [ Reply.empatheticReply ]
-
+--    Interact.startAPullTogether
+--    Interact.postNoteWithWarnings selfWorthNote [ "Self worth" ]
+--    Interact.invite _.fatima
+--
+--    as _.fatima
+--    Interact.signUp
+--    Interact.unobscureFirstNoteWithWarnings [ "Self worth" ]
+--    Interact.replyToNoteWithWarnings selfWorthNote sympatheticReply []
+--    Expect.note selfWorthNote
+--    Expect.messageFromMe empatheticReply
+--    Interact.checkPidgeonhole
+--    Expect.conversationsInOrder [ Conversation Read Note.selfWorthNote sympatheticReply ]
+--    Interact.accessConversation $ Conversation Read Note.selfWorthNote sympatheticReply
+--    Expect.note selfWorthNote
+--    Expect.messageFromMe empatheticReply
+--    Interact.checkNotes
+--
+--    as _.amani
+--    Expect.newMessagesInPidgeonhole 1
+--    Interact.invite _.nura
+--
+--    as _.nura
+--    Interact.signUp
+--    Interact.unobscureFirstNoteWithWarnings [ "Self worth" ]
+--    Interact.replyToNoteWithWarnings selfWorthNote empatheticReply [ "Mental health" ]
+--
+--    as _.amani
+--    Expect.newMessagesInPidgeonhole 2
+--    Interact.checkPidgeonhole
+--    Expect.newMessagesInPidgeonhole 0
+--    Expect.conversationsInOrder
+--      [ ObscuredConversation Unread Note.selfWorthNote [ Warning.mentalHealth ]
+--      , Conversation Unread Note.selfWorthNote sympatheticReply
+--      ]
+--    Interact.accessConversation $ ObscuredConversation selfWorthNote [ "Mental health" ]
+--    Ineract.unobscureFirstNoteWithWarnings [ "Self worth" ]
+--    Expect.note selfWorthNote
+--    Expect.unobscureFirstMessageWithWarnings [ "Mental health" ]
+--    Expect.messageFromOther empatheticReply
+--
+--    as _.nura
+--    Interact.replyToCurrentConversationWithWarnings reasuringReply []
+--
+--    as _.amani
+--    Expect.newMessagesInPidgeonhole 0
+--    Expect.messageFromOther reasuringReply
+--
+--    as _.fatima
+--    Interact.replyToNoteWithWarnings selfWorthNote ableistReply []
+--
+--    as _.amani
+--    Expect.newMessagesInPidgeonhole 1
+--    Interact.replyToCurrentConversationWithWarnings thankfulReply [ "Mental health" ]
+--    Interact.checkPidgeonhole
+--    Expect.newMessagesInPidgeonhole 0
+--    Expect.conversationsInOrder
+--      [ Conversation Read Note.selfWorthNote thankfulReply
+--      , Conversation Unread Note.selfWorthNote ableistReply
+--      ]
+--    Interact.accessConversation $ Conversation Note.selfWorthNote ableistReply
+--    Expect.messageFromOther ableistReply
+--    Interact.addWarningToReply ableistReply [ "Abeism" ]
+--    Interact.replyToCurrentConversationWithWarnings explanationReply []
+--
+--    as _.fatima
+--    Interact.unobscureFirstMessageWithWarnings [ "Ableism" ]
+--    Interact.replyToCurrentConversationWithWarnings unhelpfulReply []
+--
+--    as _.amani
+--    Expect.messageFromOther unhelpfulReply
+--    Interact.ignoreCurrentConversation
+--
+--    as _.nura
+--    Interact.replyToCurrentConversationWithWarnings friendlyReply []
+--
+--    as _.fatima
+--    Interact.replyToCurrentConversationWithWarnings misguidedReply []
+--
+--    as _.amani
+--    Expect.newMessagesInPidgeonhole 1
+--    Interact.checkPidgeonhole
+--    Expect.conversationsInOrder
+--      [ Conversation Unread Note.selfWorthNote friendlyReply
+--      , IgnoredConversation Unread Note.selfWorthNote
+--      ]
+    
+-- Scenario: Change username / password
+-- Scenario: Ignore warnings
+-- Scenario: Timed warning acceptance
+-- Scenario: Panic button
+-- Scenario: Bookmarks
+-- Scenario: Search
+-- Scenario: Blocking

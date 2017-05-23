@@ -4,8 +4,8 @@ import Prelude
 
 import Halogen as H
 import Halogen.HTML as HH
-import Halogen.HTML.Events as HE
-import Halogen.HTML.Properties as HP
+--import Halogen.HTML.Events as HE
+--import Halogen.HTML.Properties as HP
 
 import Data.Maybe (Maybe(..))
 
@@ -31,7 +31,14 @@ comp =
 
   render :: State -> H.ComponentHTML Query
   render state =
-    HH.text "Pull together"
+    HH.div_
+      [ HH.h1_ [ HH.text "Pull together" ]
+      , HH.button_ [ HH.text "Sign out" ]
+      , HH.label_
+          [ HH.text "Group name"
+          , HH.input []
+          ]
+      ]
 
   eval :: Query ~> H.ComponentDSL State Query Message m
   eval = case _ of

@@ -1,49 +1,43 @@
 module Test.PullTogether.Feature.Main where
 
 import Prelude
-
+import Control.Monad.Eff.Console as Ec
+import Data.Int as Int
+import Data.String as S
+import Node.ChildProcess as CP
+import Node.Process as Process
+import Test.PullTogether.Feature.Effects as PTFEffects
 import Control.Monad.Aff (Aff, runAff, apathize, attempt)
 import Control.Monad.Aff.AVar (makeVar, takeVar, putVar, AVAR)
 import Control.Monad.Aff.Console (log)
 import Control.Monad.Aff.Reattempt (reattempt)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
-import Control.Monad.Eff.Console as Ec
 import Control.Monad.Eff.Exception (EXCEPTION, Error, message)
 import Control.Monad.Eff.Ref (REF, newRef, readRef)
-import Control.Monad.State.Trans (runStateT)
 import Control.Monad.Error.Class (throwError)
-
-import Data.Int as Int
+import Control.Monad.State.Trans (runStateT)
+import DOM (DOM)
+import Data.Either (Either(Left, Right), either)
+import Data.Foldable (traverse_)
+import Data.Maybe (Maybe)
 import Data.Posix.Signal (Signal(SIGTERM))
-import Data.String as S
 import Data.Time.Duration (Milliseconds(..))
 import Data.Tuple (Tuple(Tuple), fst, snd)
-import Data.Either (Either(Left, Right), either)
-import Data.Maybe (Maybe)
-import Data.Foldable (traverse_)
-
-import DOM (DOM)
-
-import Node.ChildProcess as CP
 import Node.FS (FS)
 import Node.FS.Aff (mkdir, unlink)
 import Node.Path (resolve)
-import Node.Process as Process
 import Node.Rimraf (rimraf)
 import Node.Stream (Readable, Duplex, pipe, onClose)
-
 import Selenium (quit)
 import Selenium.Browser (Browser(..), browserCapabilities)
 import Selenium.Builder (withCapabilities, build)
 import Selenium.Monad (setWindowSize)
 import Selenium.Types (SELENIUM)
-
 import Test.Feature.Monad (FeatureEffects)
 import Test.PullTogether.Feature.Config (Config)
-import Test.PullTogether.Feature.Effects as PTFEffects
+import Test.PullTogether.Feature.Starter (expectStdErr, starter)
 import Test.PullTogether.Feature.Test (test)
-import Test.PullTogether.Feature.Starter (starter)
 import Text.Chalky (green, yellow, red)
 
 foreign import createReadStream
@@ -167,10 +161,10 @@ main = do
     --    (expectStdOut "waiting for connections on port")
     --liftEff $ modifyRef procs (Arr.cons mongo)
 
+    _ ← startProc "Web server" "pulp" ["server"] (expectStdErr "Bundled.")
+
     log $ yellow "Starting tests"
-    testResults
-      ← attempt
-        $ runTests rawConfig
+    testResults ← attempt $ runTests rawConfig
     case testResults of
       Left e →  throwError e
       Right _ → log $ green "OK, tests passed."

@@ -91,3 +91,11 @@ Then I should be presented with the reply
 And I should be able to add warnings to the reply
 And I should be able to obscure the reply behind its warnings
 And I should have the option to reply to the reply
+
+[0]
+
+# I'm feeling like I'm a really...
+Hey I'm so sorry you're feeling that way because I...
+
+# I'm feeling like I'm a really terrible person...
+Haha suckit.
